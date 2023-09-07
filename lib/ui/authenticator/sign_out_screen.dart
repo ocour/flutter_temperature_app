@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:temperature_app/services/AuthService.dart';
+import 'package:temperature_app/services/auth/auth_service.dart';
 
 class SignOutScreen extends StatelessWidget {
   const SignOutScreen({super.key});
@@ -21,6 +21,7 @@ class SignOutScreen extends StatelessWidget {
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () async {
+                //TODO: IMPLEMENT LOADING
                 await context.read<AuthService>().signOut();
                 if (context.mounted) {
                   Navigator.pushNamedAndRemoveUntil(

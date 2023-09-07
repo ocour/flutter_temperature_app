@@ -1,13 +1,11 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:temperature_app/ui/authenticator/ConfirmNewPasswordScreen.dart';
-import 'package:temperature_app/ui/authenticator/SignOutScreen.dart';
+import 'package:temperature_app/ui/authenticator/confirm_new_password_screen.dart';
+import 'package:temperature_app/ui/authenticator/sign_out_screen.dart';
 
-import '../../amplifyconfiguration.dart';
-import '../../services/AuthService.dart';
-import 'SignInScreen.dart';
+import '../../services/auth/auth_service.dart';
+import '../../services/auth/auth_state.dart';
+import 'sign_in_screen.dart';
 
 class Authenticator extends StatefulWidget {
   const Authenticator({super.key, required this.child});
@@ -29,13 +27,13 @@ class _AuthenticatorState extends State<Authenticator> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthService>(
-        builder: (_, auth, __) {
-          if(auth.isSignedIn) {
+    return Consumer<AuthState?>(
+        builder: (_, state, __) {
+          if(state?.isSignedIn ?? false) {
             return widget.child;
           } else {
             return Navigator(
-              initialRoute: /* SignInScreen.routeName */ ConfirmNewPasswordScreen.routeName,
+              initialRoute: SignInScreen.routeName,
               onGenerateRoute: (settings) {
                 WidgetBuilder builder;
                 switch(settings.name) {

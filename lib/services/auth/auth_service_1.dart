@@ -3,12 +3,31 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 
-class AuthService extends ChangeNotifier {
+// TODO: CONVERT TO Wrap CognitoAuthService
+// AuthProvider abstract class
+// CognitoAuthProvider that implements AuthProvider
+// AuthService that implements AuthProvider
+//
+// Convert to use Custom Exceptions
+class AuthService1 extends ChangeNotifier {
 
   StreamSubscription<AuthHubEvent>? _authEventSubscription;
 
   bool _isSignedIn = false;
   bool get isSignedIn => _isSignedIn;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  void _startLoading() {
+    _isLoading = true;
+    notifyListeners();
+  }
+
+  void _stopLoading() {
+    _isLoading = false;
+    notifyListeners();
+  }
 
   Future<void> initialize() async {
     // Get initial SignedIn state
@@ -38,6 +57,11 @@ class AuthService extends ChangeNotifier {
     });
   }
 
+  /// Updates [_isSignedIn] variable
+  ///
+  /// if [isSignedIn] parameter is supplied [_isSignedIn] will be set to it,
+  /// otherwise if no parameter is supplied, fetch [AuthSession] and set its
+  /// [isSignedIn] to our [_isSignedIn]
   Future<void> updateUserAuthStatus({bool? isSignedIn}) async {
     if(isSignedIn == null) {
       final result = await Amplify.Auth.fetchAuthSession();
@@ -54,40 +78,48 @@ class AuthService extends ChangeNotifier {
     required String password,
   }) async {
     try {
+      _startLoading();
       final result = await Amplify.Auth.signIn(
         username: username,
         password: password,
       );
-      safePrint('isSignedIn: ${result.isSignedIn}');
       safePrint('Result: ${result.nextStep}');
-
       await updateUserAuthStatus(isSignedIn: result.isSignedIn);
       return result.nextStep.signInStep;
     } on AuthException catch (e) {
       safePrint('Error signing in: ${e.message}');
+      safePrint('Error: ${e.underlyingException}');
       rethrow;
+    } finally {
+      _stopLoading();
     }
   }
 
   Future<void> confirmNewPassword(String newPassword) async {
     try {
+      _startLoading();
       final result = await Amplify.Auth.confirmSignIn(
         confirmationValue: newPassword,
       );
-      safePrint('isSignedIn: ${result.isSignedIn}');
       safePrint('Result: ${result.nextStep}');
-
       await updateUserAuthStatus(isSignedIn: result.isSignedIn);
     } on AuthException catch (e) {
       safePrint('Error confirming new password: ${e.message}');
       rethrow;
+    } finally {
+      _stopLoading();
     }
   }
 
   Future<void> signOut() async {
-    final result = await Amplify.Auth.signOut();
-    if (result is CognitoFailedSignOut) {
-      safePrint('Error signing user out: ${result.exception.message}');
+    try {
+      _startLoading();
+      final result = await Amplify.Auth.signOut();
+      if (result is CognitoFailedSignOut) {
+        safePrint('Error signing user out: ${result.exception.message}');
+      }
+    } finally {
+      _stopLoading();
     }
   }
 

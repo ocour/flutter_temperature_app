@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:temperature_app/services/AuthService.dart';
+import 'package:temperature_app/services/auth/auth_service.dart';
 
 class ConfirmNewPasswordScreen extends StatefulWidget {
   const ConfirmNewPasswordScreen({super.key});
@@ -30,6 +30,7 @@ class _ConfirmNewPasswordScreenState extends State<ConfirmNewPasswordScreen> {
     });
   }
 
+  // TODO: IMPLEMENT LOADING
   Future<void> _confirmNewPassword() async {
     final newPassword = _newPasswordController.text;
     context.read<AuthService>().confirmNewPassword(newPassword);

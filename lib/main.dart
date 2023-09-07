@@ -2,19 +2,29 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:temperature_app/services/AuthService.dart';
+import 'package:temperature_app/services/auth/auth_service.dart';
 
 import 'amplifyconfiguration.dart';
-import 'ui/authenticator/Authenticator.dart';
-import 'ui/screens/HomeScreen.dart';
+import 'services/auth/auth_state.dart';
+import 'ui/authenticator/authenticator.dart';
+import 'ui/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _configureAmplify();
+
+  final auth = AuthService.fromCognito();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
+        Provider.value(value: auth),
+        StreamProvider<AuthState?>(
+            create: (_) => auth.state,
+            initialData: const AuthState(
+                isSignedIn: false
+            ),
+        ),
       ],
       child: const TemperatureApp(),
     ),
