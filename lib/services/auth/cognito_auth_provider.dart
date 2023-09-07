@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart'
     as cognito
-    show NotAuthorizedServiceException, UserNotFoundException, AuthException;
+    show NotAuthorizedServiceException, UserNotFoundException, AuthException, CognitoFailedSignOut;
 import 'package:amplify_flutter/amplify_flutter.dart'
     as amplify
-    show Amplify, AuthHubEvent, AuthHubEventType, AuthSignInStep, HubChannel, safePrint;
+    show Amplify, AuthHubEvent, AuthHubEventType, HubChannel, safePrint;
+
 import 'package:temperature_app/services/auth/auth_exceptions.dart';
 import 'package:temperature_app/services/auth/auth_provider.dart';
 import 'package:temperature_app/services/auth/auth_state.dart';
+
+import 'auth_next_step.dart';
 
 class CognitoAuthProvider extends AuthProvider {
   @override
@@ -59,9 +62,9 @@ class CognitoAuthProvider extends AuthProvider {
     );
   }
 
-  /// Updates [_isSignedIn] variable
+  /// Updates [_isSignedIn] variable and adds state to stream
   ///
-  /// if [isSignedIn] parameter is supplied [_isSignedIn] will be set to it,
+  /// If [isSignedIn] parameter is supplied [_isSignedIn] will be set to it,
   /// otherwise if no parameter is supplied, fetch [AuthSession] and set its
   /// [isSignedIn] to our [_isSignedIn]
   Future<void> _updateUserAuthStatus({bool? isSignedIn}) async {
@@ -86,8 +89,7 @@ class CognitoAuthProvider extends AuthProvider {
         password: password,
       );
       amplify.safePrint('Result: ${result.nextStep}');
-      await _updateUserAuthStatus(isSignedIn: result.isSignedIn);
-      return _returnAuthNextStep(result.nextStep.signInStep);
+      return AuthNextStep.fromAuthSignInStep(step: result.nextStep.signInStep);
     } on cognito.UserNotFoundException catch (e) {
       throw AuthUserNotFoundException(message: e.message);
     } on cognito.NotAuthorizedServiceException catch (e) {
@@ -97,27 +99,27 @@ class CognitoAuthProvider extends AuthProvider {
     }
   }
 
-  AuthNextStep _returnAuthNextStep(amplify.AuthSignInStep nextStep) {
-    switch(nextStep) {
-      case amplify.AuthSignInStep.confirmSignInWithNewPassword:
-        return AuthNextStep.confirmSignInWithNewPassword;
-      case amplify.AuthSignInStep.done:
-        return AuthNextStep.done;
-      default:
-        return AuthNextStep.notImplemented;
+  @override
+  Future<void> signOut() async {
+    final result = await amplify.Amplify.Auth.signOut();
+    if (result is cognito.CognitoFailedSignOut) {
+      amplify.safePrint('Error signing user out: ${result.exception.message}');
     }
   }
 
   @override
-  Future<void> signOut() {
-    // TODO: implement signOut
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> confirmNewPassword(String newPassword) {
-    // TODO: implement confirmNewPassword
-    throw UnimplementedError();
+  Future<AuthNextStep> confirmNewPassword(String newPassword) async {
+    try {
+      final result = await amplify.Amplify.Auth.confirmSignIn(
+        confirmationValue: newPassword,
+      );
+      amplify.safePrint('Result: ${result.nextStep}');
+      return AuthNextStep.fromAuthSignInStep(step: result.nextStep.signInStep);
+    } on cognito.AuthException catch (e) {
+      amplify.safePrint('Error confirming new password: ${e.message}');
+      amplify.safePrint('Error type: ${e.runtimeType}');
+      throw AuthUnknownException(message: e.message);
+    }
   }
 
   @override

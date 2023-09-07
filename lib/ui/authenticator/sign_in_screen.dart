@@ -2,10 +2,14 @@ import 'package:amplify_flutter/amplify_flutter.dart' show safePrint;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/ui/authenticator/confirm_new_password_screen.dart';
+import 'package:temperature_app/ui/utils/password_text_form_field.dart';
+import 'package:temperature_app/ui/utils/username_text_form_field.dart';
 
 import '../../services/auth/auth_exceptions.dart';
-import '../../services/auth/auth_provider.dart';
+import '../../services/auth/auth_next_step.dart';
 import '../../services/auth/auth_service.dart';
+import '../utils/error_card.dart';
+import '../utils/divider.dart' as util;
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -23,11 +27,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   String? _errorMessage;
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -48,59 +47,59 @@ class _SignInScreenState extends State<SignInScreen> {
     });
   }
 
-  void startLoading() {
+  void _startLoading() {
     setState(() {
       _isLoading = true;
     });
   }
 
-  void stopLoading() {
+  void _stopLoading() {
     setState(() {
       _isLoading = false;
     });
   }
 
-  // TODO: ADD LOADING VARIABLE
   Future<void> _signIn() async {
     try {
-      startLoading();
+      _startLoading();
       final username = _usernameController.text;
       final password = _passwordController.text;
       final nextStep = await context
           .read<AuthService>()
           .signIn(username: username, password: password);
-      await _handleNextStep(nextStep);
+      _handleNextStep(nextStep.step);
     } on AuthUserNotFoundException {
       _showErrorWithMessage("Incorrect username or password");
     } on AuthWrongPasswordException {
       _showErrorWithMessage("Incorrect username or password");
-    } on AuthUnknownException catch(e) {
+    } on AuthUnknownException catch (e) {
       _showErrorWithMessage("Unknown error: ${e.message}");
     } finally {
-      stopLoading();
+      _stopLoading();
     }
   }
 
-  Future<void> _handleNextStep(AuthNextStep nextStep) async {
+  void _handleNextStep(AuthStep nextStep) {
     switch (nextStep) {
-      case AuthNextStep.confirmSignInWithNewPassword:
+      case AuthStep.confirmSignInWithNewPassword:
         Navigator.pushNamedAndRemoveUntil(
           context,
           ConfirmNewPasswordScreen.routeName,
           (route) => false,
         );
         break;
-      case AuthNextStep.done:
-        // No need to navigate,
-        // it will be done automatically once isSignedIn changes
+      case AuthStep.done:
+        // No need to navigate, as it will be done automatically
+        // once isSignedIn changes
         safePrint("Successfully signed in!");
         break;
       default:
-        safePrint("Next step is not implemented!");
+        safePrint("AuthStep: '$nextStep' is not implemented!");
+        _showErrorWithMessage("AuthStep: '$nextStep' is not implemented!");
     }
   }
 
-  final divider = const SizedBox(height: 16.0);
+  final Widget divider = const util.Divider();
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +110,7 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       body: Column(
         children: [
-         if(_isLoading) const LinearProgressIndicator(),
+          if (_isLoading) const LinearProgressIndicator(),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Center(
@@ -120,42 +119,23 @@ class _SignInScreenState extends State<SignInScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    if(_errorMessage != null) ErrorCard(message: _errorMessage!),
+                    if (_errorMessage != null)
+                      ErrorCard(message: _errorMessage!),
                     divider,
-                    TextFormField(
+                    UsernameTextFormField(
+                      enabled: !_isLoading,
                       controller: _usernameController,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        icon: const Icon(Icons.person_rounded),
-                        labelText: "Username",
-                        errorText: _errorMessage != null ? "" : null,
-                      ),
-                      validator: (String? value) {
-                        if (value != null && value.isEmpty) {
-                          return "Username cannot be empty";
-                        } else {
-                          return null;
-                        }
-                      },
+                      labelText: "Username",
                     ),
                     divider,
-                    TextFormField(
+                    PasswordTextFormField(
+                      enabled: !_isLoading,
                       controller: _passwordController,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      obscureText: true,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        icon: const Icon(Icons.password_rounded),
-                        labelText: "Password",
-                        errorText: _errorMessage != null ? "" : null,
-                      ),
+                      labelText: "Password",
                       validator: (String? value) {
-                        if (value != null && value.isNotEmpty && value.length < 8) {
+                        if (value != null &&
+                            value.isNotEmpty &&
+                            value.length < 8) {
                           return "Password has to be longer than 8 characters";
                         } else if (value != null && value.isEmpty) {
                           return "Password cannot be empty";
@@ -166,13 +146,14 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     divider,
                     FilledButton(
-                      onPressed: () async {
-                        _resetErrorMessage();
-                        if (_formKey.currentState!.validate()) {
-                          await _signIn();
-                          // TODO: DISABLE BUTTON
-                        }
-                      },
+                      onPressed: !_isLoading
+                          ? () async {
+                              _resetErrorMessage();
+                              if (_formKey.currentState!.validate()) {
+                                await _signIn();
+                              }
+                            }
+                          : null,
                       child: const Text("Sign In"),
                     ),
                   ],
@@ -181,43 +162,6 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class ErrorCard extends StatelessWidget {
-  const ErrorCard({super.key, required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(2),
-      ),
-      color: Theme.of(context).colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
-                child: Icon(Icons.error_outline_rounded),
-              ),
-              Flexible(
-                child: Text(
-                  message,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              )
-            ],
-          ),
-        ),
       ),
     );
   }

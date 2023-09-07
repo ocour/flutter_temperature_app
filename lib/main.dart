@@ -55,9 +55,22 @@ class TemperatureApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      // Will wrap every route in Authenticator Widget
+      builder: (_, child) => Authenticator(child: child!),
+      onGenerateRoute: (settings) {
+        WidgetBuilder builder;
+        switch(settings.name) {
+          case "screen-2":
+            builder = (context) => const Screen2();
+          default:
+            throw Exception('Invalid route: ${settings.name}');
+        }
+        return MaterialPageRoute(builder: builder, settings: settings);
+      },
       home: const Authenticator(
         child: HomeScreen(title: "Home Page"),
       ),
     );
   }
 }
+

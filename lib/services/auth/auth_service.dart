@@ -1,6 +1,7 @@
 import 'package:temperature_app/services/auth/auth_state.dart';
 import 'package:temperature_app/services/auth/cognito_auth_provider.dart';
 
+import 'auth_next_step.dart';
 import 'auth_provider.dart';
 
 class AuthService extends AuthProvider {
@@ -25,7 +26,7 @@ class AuthService extends AuthProvider {
   }
 
   @override
-  Future<void> confirmNewPassword(String newPassword) {
+  Future<AuthNextStep> confirmNewPassword(String newPassword) {
     return provider.confirmNewPassword(newPassword);
   }
 
