@@ -17,7 +17,7 @@ class AuthService extends AuthProvider {
   Stream<AuthState> get state => provider.state;
 
   @override
-  bool get isSignedIn => provider.isSignedIn;
+  Future<bool> get isSignedIn => provider.isSignedIn;
 
 
   @override

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart'
     as cognito
-    show NotAuthorizedServiceException, UserNotFoundException, AuthException, CognitoFailedSignOut;
+    show NotAuthorizedServiceException, UserNotFoundException, AuthException, CognitoFailedSignOut, SignedOutException;
 import 'package:amplify_flutter/amplify_flutter.dart'
     as amplify
     show Amplify, AuthHubEvent, AuthHubEventType, HubChannel, safePrint;
@@ -16,10 +16,12 @@ import 'auth_next_step.dart';
 class CognitoAuthProvider extends AuthProvider {
   @override
   Future<void> initialize() async {
+    await _authEventSubscription?.cancel();
     // Get initial SignedIn state
-    await _updateUserAuthStatus();
+    await _pushState();
     // TODO: REMOVE PRINT
-    print("SignedIn: $_isSignedIn");
+    print("CognitoAuthProvider: initialize()");
+    print("SignedIn: ${await _isSignedIn}");
 
     // Subscribe to SingIn and SingOut events
     _authEventSubscription =
@@ -27,19 +29,19 @@ class CognitoAuthProvider extends AuthProvider {
       switch (event.type) {
         case amplify.AuthHubEventType.signedIn:
           amplify.safePrint('User is signed in.');
-          await _updateUserAuthStatus();
+          await _pushState();
           break;
         case amplify.AuthHubEventType.signedOut:
           amplify.safePrint('User is signed out.');
-          await _updateUserAuthStatus();
+          await _pushState();
           break;
         case amplify.AuthHubEventType.sessionExpired:
           amplify.safePrint('The session has expired.');
-          await _updateUserAuthStatus();
+          await _pushState();
           break;
         case amplify.AuthHubEventType.userDeleted:
           amplify.safePrint('The user has been deleted.');
-          await _updateUserAuthStatus();
+          await _pushState();
           break;
       }
     });
@@ -51,31 +53,23 @@ class CognitoAuthProvider extends AuthProvider {
   @override
   Stream<AuthState> get state => _stateController.stream;
 
-  bool _isSignedIn = false;
-
-  @override
-  bool get isSignedIn => _isSignedIn;
-
-  void _pushState() {
-    _stateController.add(
-      AuthState(isSignedIn: _isSignedIn),
-    );
+  Future<bool> get _isSignedIn async {
+    try {
+      final result = await amplify.Amplify.Auth.fetchAuthSession();
+      return result.isSignedIn;
+    } on cognito.SignedOutException {
+      return false;
+    }
   }
 
-  /// Updates [_isSignedIn] variable and adds state to stream
-  ///
-  /// If [isSignedIn] parameter is supplied [_isSignedIn] will be set to it,
-  /// otherwise if no parameter is supplied, fetch [AuthSession] and set its
-  /// [isSignedIn] to our [_isSignedIn]
-  Future<void> _updateUserAuthStatus({bool? isSignedIn}) async {
-    if (isSignedIn == null) {
-      final result = await amplify.Amplify.Auth.fetchAuthSession();
-      _isSignedIn = result.isSignedIn;
-      _pushState();
-    } else {
-      _isSignedIn = isSignedIn;
-      _pushState();
-    }
+  @override
+  Future<bool> get isSignedIn async => await _isSignedIn;
+
+  // Push state to stream
+  Future<void> _pushState() async {
+    _stateController.add(
+      AuthState(isSignedIn: await _isSignedIn),
+    );
   }
 
   @override

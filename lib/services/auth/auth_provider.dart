@@ -6,7 +6,7 @@ import 'auth_state.dart';
 abstract class AuthProvider extends ReactiveState<AuthState> {
   Future<void> initialize();
 
-  bool get isSignedIn;
+  Future<bool> get isSignedIn;
 
   @override
   Stream<AuthState> get state;

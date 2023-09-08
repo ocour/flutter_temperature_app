@@ -12,22 +12,10 @@ import 'ui/screens/home_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _configureAmplify();
-
-  final auth = AuthService.fromCognito();
-
   runApp(
-    MultiProvider(
-      providers: [
-        Provider.value(value: auth),
-        StreamProvider<AuthState?>(
-            create: (_) => auth.state,
-            initialData: const AuthState(
-                isSignedIn: false
-            ),
-        ),
-      ],
-      child: const TemperatureApp(),
-    ),
+      AuthenticationProvider2(
+        child: const TemperatureApp(),
+      )
   );
 }
 
