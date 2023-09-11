@@ -8,6 +8,9 @@ import '../../services/auth/auth_service.dart';
 import '../../services/auth/auth_state.dart';
 import 'sign_in_screen.dart';
 
+/// Wraps child to prevent unauthenticated access to it
+///
+/// TODO: Example usages
 class Authenticator extends StatefulWidget {
   const Authenticator({super.key, required this.child});
 
@@ -18,12 +21,23 @@ class Authenticator extends StatefulWidget {
 }
 
 class _AuthenticatorState extends State<Authenticator> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // context.read<AuthService>().initialize();
-    });
+  }
+
+  /// Will generate initialRoute, this is to override the default
+  /// defaultGenerateInitialRoutes that will implement "deep linking" which is
+  /// not something we want
+  List<Route<dynamic>> defaultGenerateInitialRoutes(
+    NavigatorState navigator,
+    String initialRouteName,
+  ) {
+    List<MaterialPageRoute> routes = [];
+    routes.add(MaterialPageRoute(builder: (context) => const SignInScreen()));
+    return routes;
   }
 
   @override
@@ -34,13 +48,16 @@ class _AuthenticatorState extends State<Authenticator> {
           return widget.child;
         } else {
           return Navigator(
+            key: _navigatorKey,
             initialRoute: SignInScreen.routeName,
+            onGenerateInitialRoutes: defaultGenerateInitialRoutes,
             onGenerateRoute: (settings) {
               WidgetBuilder builder;
               switch (settings.name) {
                 case SignInScreen.routeName:
                   builder = (context) => const SignInScreen();
                   break;
+                // TODO: REMOVE SIGN OUT SCREEN
                 case SignOutScreen.routeName:
                   builder = (context) => const SignOutScreen();
                   break;
@@ -59,6 +76,9 @@ class _AuthenticatorState extends State<Authenticator> {
   }
 }
 
+/// Provider for AuthService and AuthState stream
+///
+/// TODO: Example usages
 class AuthenticationProvider extends StatefulWidget {
   const AuthenticationProvider({super.key, required this.child});
 
@@ -90,37 +110,10 @@ class _AuthenticationProviderState extends State<AuthenticationProvider> {
         Provider.value(value: auth),
         StreamProvider<AuthState?>(
           create: (_) => auth.state,
-          initialData: const AuthState(
-              isSignedIn: false
-          ),
+          initialData: const AuthState(isSignedIn: false),
         ),
       ],
       child: widget.child,
-    );
-  }
-}
-
-
-class AuthenticationProvider2 extends StatelessWidget {
-  AuthenticationProvider2({super.key, required this.child});
-
-  final Widget child;
-
-  final auth = AuthService.fromCognito()..initialize();
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider.value(value: auth),
-        StreamProvider<AuthState?>(
-          create: (_) => auth.state,
-          initialData: const AuthState(
-              isSignedIn: false
-          ),
-        ),
-      ],
-      child: child,
     );
   }
 }

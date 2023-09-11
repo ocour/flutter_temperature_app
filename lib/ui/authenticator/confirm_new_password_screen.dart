@@ -12,7 +12,7 @@ import '../utils/divider.dart' as util;
 class ConfirmNewPasswordScreen extends StatefulWidget {
   const ConfirmNewPasswordScreen({super.key});
 
-  static const String routeName = "auth/confirm-new-password";
+  static const String routeName = "/auth/confirm-new-password";
 
   @override
   State<ConfirmNewPasswordScreen> createState() =>

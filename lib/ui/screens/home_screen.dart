@@ -20,31 +20,11 @@ class HomeScreen extends StatelessWidget {
             const Text("Welcome"),
             ElevatedButton(
                 onPressed: () async {
-                  Navigator.pushNamed(context, "screen-2");
+                  Navigator.pushNamed(context, "/provision");
                 },
                 child: const Text("navigate"),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class Screen2 extends StatelessWidget {
-  const Screen2({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Screen2"),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            const Text("Welcome"),
+            ),
+            const Text("Sign out"),
             ElevatedButton(
               onPressed: () async {
                 await context.read<AuthService>().signOut();

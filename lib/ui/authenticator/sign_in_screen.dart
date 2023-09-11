@@ -2,6 +2,7 @@ import 'package:amplify_flutter/amplify_flutter.dart' show safePrint;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/ui/authenticator/confirm_new_password_screen.dart';
+import 'package:temperature_app/ui/authenticator/sign_out_screen.dart';
 import 'package:temperature_app/ui/utils/password_text_form_field.dart';
 import 'package:temperature_app/ui/utils/username_text_form_field.dart';
 
@@ -14,7 +15,7 @@ import '../utils/divider.dart' as util;
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
-  static const String routeName = "auth/sign-in";
+  static const String routeName = "/auth/sign-in";
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();

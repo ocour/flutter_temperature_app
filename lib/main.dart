@@ -1,11 +1,8 @@
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:temperature_app/services/auth/auth_service.dart';
 
 import 'amplifyconfiguration.dart';
-import 'services/auth/auth_state.dart';
 import 'ui/authenticator/authenticator.dart';
 import 'ui/screens/home_screen.dart';
 
@@ -13,9 +10,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _configureAmplify();
   runApp(
-      AuthenticationProvider2(
-        child: const TemperatureApp(),
-      )
+      const AuthenticationProvider(
+        child: TemperatureApp(),
+      ),
   );
 }
 
@@ -48,8 +45,8 @@ class TemperatureApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         WidgetBuilder builder;
         switch(settings.name) {
-          case "screen-2":
-            builder = (context) => const Screen2();
+          case "/provision":
+            builder = (context) => const Placeholder();
           default:
             throw Exception('Invalid route: ${settings.name}');
         }

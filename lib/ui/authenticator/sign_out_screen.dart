@@ -5,7 +5,7 @@ import 'package:temperature_app/services/auth/auth_service.dart';
 class SignOutScreen extends StatelessWidget {
   const SignOutScreen({super.key});
 
-  static const String routeName = "auth/sign-out";
+  static const String routeName = "/auth/sign-out";
 
   @override
   Widget build(BuildContext context) {
