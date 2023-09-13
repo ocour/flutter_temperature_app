@@ -93,7 +93,7 @@ class _ConfirmNewPasswordScreenState extends State<ConfirmNewPasswordScreen> {
     }
   }
 
-  final divider = const util.Divider();
+  final divider = const util.MyDivider();
 
   @override
   Widget build(BuildContext context) {

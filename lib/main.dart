@@ -1,6 +1,7 @@
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:temperature_app/ui/screens/ble/device_provisioning_screen.dart';
 
 import 'amplifyconfiguration.dart';
 import 'ui/authenticator/authenticator.dart';
@@ -45,8 +46,8 @@ class TemperatureApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         WidgetBuilder builder;
         switch(settings.name) {
-          case "/provision":
-            builder = (context) => const Placeholder();
+          case DeviceProvisioningScreen.routeName:
+            builder = (context) => const DeviceProvisioningScreen();
           default:
             throw Exception('Invalid route: ${settings.name}');
         }

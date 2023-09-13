@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:provider/provider.dart';
+import 'package:temperature_app/services/ble/ble_connection_state.dart';
+import 'package:temperature_app/services/ble/ble_connector_service.dart';
+import 'package:temperature_app/services/ble/ble_device_connection_state.dart';
+import 'package:temperature_app/services/ble/ble_status_monitor_service.dart';
+import 'package:temperature_app/services/logger_service.dart';
+import 'package:temperature_app/ui/screens/ble/ble_device_connection_state_body.dart';
+import 'package:temperature_app/ui/screens/ble/ble_status_screen.dart';
+
+import 'ble_connect_to_device_screen.dart';
+import 'ble_provision_new_device_body.dart';
+import 'ble_scan_screen.dart';
+
+class DeviceProvisioningScreen extends StatefulWidget {
+  const DeviceProvisioningScreen({super.key});
+
+  static const String routeName = "/device-provision";
+
+  @override
+  State<DeviceProvisioningScreen> createState() =>
+      _DeviceProvisioningScreenState();
+}
+
+class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  late final LoggerService _logger;
+  late final FlutterReactiveBle _ble;
+  late final BleStatusMonitorService _bleStatusMonitor;
+  late final BleConnectorService _connector;
+
+  final initialRoute = BleScanScreen.routeName;
+  final Widget initialScreen = const BleScanScreen();
+
+  @override
+  void initState() {
+    super.initState();
+    _logger = LoggerService();
+    _ble = FlutterReactiveBle();
+    _bleStatusMonitor = BleStatusMonitorService(ble: _ble);
+    _connector = BleConnectorService(ble: _ble, logMessage: _logger.log);
+  }
+
+  @override
+  void dispose() {
+    _connector.dispose();
+    super.dispose();
+  }
+
+  /// Will generate [BleScanScreen] as the initial route, this is to override
+  /// the default defaultGenerateInitialRoutes that will
+  /// implement "deep linking" which is not something we want
+  List<Route<dynamic>> defaultGenerateInitialRoutes(
+    NavigatorState navigator,
+    String initialRouteName,
+  ) {
+    List<MaterialPageRoute> routes = [];
+    routes.add(MaterialPageRoute(builder: (context) => initialScreen));
+    return routes;
+  }
+
+  // TODO: Check bluetooth status, if not ready go to BleStatusScreen to inform user of it
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        Provider.value(value: _logger),
+        Provider.value(value: _ble),
+        Provider.value(value: _connector),
+        StreamProvider<BleStatus?>(
+            create: (_) => _bleStatusMonitor.state,
+            initialData: BleStatus.unknown),
+        StreamProvider<BleConnectionState?>(
+            create: (_) => _connector.state,
+            initialData: const BleConnectionState(
+              deviceId: "Unknown device",
+              connectionState: BleDeviceConnectionState.none,
+              failure: null,
+            )),
+      ],
+      child: WillPopScope(
+        onWillPop: () async {
+          if (_navigatorKey.currentState!.canPop()) {
+            _navigatorKey.currentState!.pop();
+            return false;
+          }
+          return true;
+        },
+        child: Consumer<BleStatus?>(
+          builder: (_, status, __) {
+            if (status != BleStatus.ready) {
+              return BleStatusScreen(status: status ?? BleStatus.unknown);
+            } else {
+              return Navigator(
+                key: _navigatorKey,
+                initialRoute: initialRoute,
+                onGenerateInitialRoutes: defaultGenerateInitialRoutes,
+                onGenerateRoute: (settings) {
+                  WidgetBuilder builder;
+                  switch (settings.name) {
+                    case BleScanScreen.routeName:
+                      builder = (_) => const BleScanScreen();
+                      break;
+                    case BleConnectToDeviceScreen.routeName:
+                      final device = settings.arguments as DiscoveredDevice;
+                      builder = (_) => BleConnectToDeviceScreen(device: device);
+                      break;
+                    default:
+                      throw Exception('Invalid route: ${settings.name}');
+                  }
+                  return MaterialPageRoute(
+                      builder: builder, settings: settings);
+                },
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+}

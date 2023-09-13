@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:temperature_app/services/auth/auth_service.dart';
+
+import '../../services/auth/auth_service.dart';
+import '../utils/temperature_app_app_bar.dart';
+import 'ble/device_provisioning_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.title});
@@ -10,19 +13,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
-      ),
+      appBar: const TemperatureAppAppBar(title: "Temperature App"),
       body: Center(
         child: Column(
           children: [
             const Text("Welcome"),
             ElevatedButton(
                 onPressed: () async {
-                  Navigator.pushNamed(context, "/provision");
+                  Navigator.pushNamed(context, DeviceProvisioningScreen.routeName);
                 },
-                child: const Text("navigate"),
+                child: const Text("Provision device"),
             ),
             const Text("Sign out"),
             ElevatedButton(

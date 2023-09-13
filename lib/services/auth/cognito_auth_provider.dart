@@ -82,7 +82,7 @@ class CognitoAuthProvider extends AuthProvider {
         username: username,
         password: password,
       );
-      amplify.safePrint('Result: ${result.nextStep}');
+      // amplify.safePrint('Result: ${result.nextStep}');
       return AuthNextStep.fromAuthSignInStep(step: result.nextStep.signInStep);
     } on cognito.UserNotFoundException catch (e) {
       throw AuthUserNotFoundException(message: e.message);
@@ -107,7 +107,7 @@ class CognitoAuthProvider extends AuthProvider {
       final result = await amplify.Amplify.Auth.confirmSignIn(
         confirmationValue: newPassword,
       );
-      amplify.safePrint('Result: ${result.nextStep}');
+      // amplify.safePrint('Result: ${result.nextStep}');
       return AuthNextStep.fromAuthSignInStep(step: result.nextStep.signInStep);
     } on cognito.AuthException catch (e) {
       amplify.safePrint('Error confirming new password: ${e.message}');

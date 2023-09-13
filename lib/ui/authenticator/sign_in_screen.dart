@@ -100,7 +100,7 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  final Widget divider = const util.Divider();
+  final Widget divider = const util.MyDivider();
 
   @override
   Widget build(BuildContext context) {

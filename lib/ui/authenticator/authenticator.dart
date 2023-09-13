@@ -28,9 +28,9 @@ class _AuthenticatorState extends State<Authenticator> {
     super.initState();
   }
 
-  /// Will generate initialRoute, this is to override the default
-  /// defaultGenerateInitialRoutes that will implement "deep linking" which is
-  /// not something we want
+  /// Will generate [SignInScreen] as the initial route, this is to override
+  /// the default defaultGenerateInitialRoutes that will
+  /// implement "deep linking" which is not something we want
   List<Route<dynamic>> defaultGenerateInitialRoutes(
     NavigatorState navigator,
     String initialRouteName,
