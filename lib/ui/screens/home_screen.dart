@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:temperature_app/services/api/temperature_api_service.dart';
 
+import '../../services/api/thing_name.dart';
 import '../../services/auth/auth_service.dart';
 import '../utils/temperature_app_app_bar.dart';
 import 'ble/device_provisioning_screen.dart';
@@ -12,26 +14,47 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const TemperatureAppAppBar(title: "Temperature App"),
-      body: Center(
-        child: Column(
-          children: [
-            const Text("Welcome"),
-            ElevatedButton(
+    return MultiProvider(
+      providers: [
+        Provider(create: (context) => TemperatureApiService())
+      ],
+      builder: (context, child) => Scaffold(
+        appBar: const TemperatureAppAppBar(title: "Temperature App"),
+        body: Center(
+          child: Column(
+            children: [
+              const Text("Welcome"),
+              ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pushNamed(context, DeviceProvisioningScreen.routeName);
+                  },
+                  child: const Text("Provision device"),
+              ),
+              const Text("Sign out"),
+              ElevatedButton(
                 onPressed: () async {
-                  Navigator.pushNamed(context, DeviceProvisioningScreen.routeName);
+                  await context.read<AuthService>().signOut();
                 },
-                child: const Text("Provision device"),
-            ),
-            const Text("Sign out"),
-            ElevatedButton(
-              onPressed: () async {
-                await context.read<AuthService>().signOut();
-              },
-              child: const Text("SignOut"),
-            )
-          ],
+                child: const Text("SignOut"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final result = await context.read<TemperatureApiService>().getAllThings();
+                  print("Result: $result");
+                },
+                child: const Text("Test"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final result = await context.read<TemperatureApiService>().getTemperatureData(
+                      const ThingName(thingName: "thing1"),
+                  );
+                  print("Result: $result");
+                },
+                child: const Text("Test2"),
+              ),
+            ],
+          ),
         ),
       ),
     );

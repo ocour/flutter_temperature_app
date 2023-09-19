@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:temperature_app/ui/utils/non_secret_text_form_field.dart';
 
-class UsernameTextFormField extends StatelessWidget {
-  const UsernameTextFormField({
+class WifiSsidTextFormField extends StatelessWidget {
+  const WifiSsidTextFormField({
     super.key,
     this.controller,
     this.labelText,
     this.enabled,
-    this.errorText,
-    this.validator,
+    this.validator, this.errorText,
   });
 
   final TextEditingController? controller;
   final String? labelText;
-  final bool? enabled;
   final String? errorText;
+  final bool? enabled;
   final String? Function(String? value)? validator;
 
   String? defaultValidator(String? value) {
     if (value != null && value.isEmpty) {
-      return "Username cannot be empty";
+      return "Wi-Fi SSID cannot be empty";
     } else {
       return null;
     }
@@ -26,20 +26,13 @@ class UsernameTextFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    return NonSecretTextFormField(
       enabled: enabled,
       controller: controller,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      autocorrect: false,
-      enableSuggestions: false,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        icon: const Icon(Icons.person_rounded),
-        labelText: labelText,
-        errorText: errorText,
-      ),
+      labelText: labelText,
+      errorText: errorText,
+      icon: Icons.wifi_rounded,
       validator: validator ?? defaultValidator,
     );
   }
 }
-

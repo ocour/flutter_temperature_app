@@ -3,18 +3,19 @@ import 'dart:async';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:temperature_app/services/ble/ble_connection_state.dart';
 import 'package:temperature_app/services/ble/ble_device_connection_state.dart';
+import 'package:temperature_app/services/ble/ble_device_interactor.dart';
+import 'package:temperature_app/services/ble/utils/typedefs.dart';
 import 'package:temperature_app/services/reactive_state.dart';
 
 class BleConnectorService implements ReactiveState<BleConnectionState> {
   BleConnectorService({
     required FlutterReactiveBle ble,
-    required void Function({
-      required String name,
-      required String message,
-      Object? error,
-    }) logMessage,
-  })  : _ble = ble,
-        _logMessage = logMessage {
+    required LogMessage logMessage,
+    required BleDeviceInteractor interactor,
+  })
+      : _ble = ble,
+        _logMessage = logMessage,
+        _interactor = interactor {
     _log("BleConnectorService created.");
   }
 
@@ -23,15 +24,12 @@ class BleConnectorService implements ReactiveState<BleConnectionState> {
   static const connectionTimeout = preScanDuration;
 
   final FlutterReactiveBle _ble;
-  final void Function({
-    required String name,
-    required String message,
-    Object? error,
-  }) _logMessage;
+  final LogMessage _logMessage;
+  final BleDeviceInteractor _interactor;
 
   String? connectedDeviceId;
   final StreamController<BleConnectionState> _deviceConnectionController =
-      StreamController();
+  StreamController();
   StreamSubscription<ConnectionStateUpdate>? _connection;
 
   @override
@@ -65,14 +63,15 @@ class BleConnectorService implements ReactiveState<BleConnectionState> {
     // Start connecting
     _connection = _ble
         .connectToAdvertisingDevice(
-            id: deviceId,
-            withServices: [],
-            prescanDuration: preScanDuration,
-            connectionTimeout: connectionTimeout)
+        id: deviceId,
+        withServices: [],
+        prescanDuration: preScanDuration,
+        connectionTimeout: connectionTimeout)
         .listen(
-      (update) {
+          (update) async {
         _log(
-          "Connection state update for device $deviceId: ${update.connectionState}",
+          "Connection state update for device $deviceId: ${update
+              .connectionState}",
         );
         switch (update.connectionState) {
           case DeviceConnectionState.connecting:
@@ -89,6 +88,22 @@ class BleConnectorService implements ReactiveState<BleConnectionState> {
               deviceId: update.deviceId,
               failure: update.failure,
             );
+            //  Check that connected device support required services
+            final services = await _interactor.discoverServices(deviceId: deviceId);
+            final doesSupportRequiredServices = _interactor.supportsRequiredServices(services: services);
+            if(doesSupportRequiredServices) {
+              _emit(
+                connectionState: BleDeviceConnectionState.connectedAndDoesSupportServices,
+                deviceId: update.deviceId,
+                failure: update.failure,
+              );
+            } else {
+              _emit(
+                connectionState: BleDeviceConnectionState.connectedButDoesNotSupportServices,
+                deviceId: update.deviceId,
+                failure: update.failure,
+              );
+            }
             break;
           case DeviceConnectionState.disconnecting:
             _emit(
@@ -106,10 +121,11 @@ class BleConnectorService implements ReactiveState<BleConnectionState> {
             break;
         }
       },
-      onError: (Object e) => _log(
-        "Connecting to device $deviceId returned error $e",
-        error: e,
-      ),
+      onError: (Object e) =>
+          _log(
+            "Connecting to device $deviceId returned error $e",
+            error: e,
+          ),
     );
   }
 

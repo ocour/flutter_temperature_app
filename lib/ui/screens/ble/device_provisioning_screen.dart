@@ -4,13 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:temperature_app/services/ble/ble_connection_state.dart';
 import 'package:temperature_app/services/ble/ble_connector_service.dart';
 import 'package:temperature_app/services/ble/ble_device_connection_state.dart';
+import 'package:temperature_app/services/ble/ble_device_interactor.dart';
 import 'package:temperature_app/services/ble/ble_status_monitor_service.dart';
+import 'package:temperature_app/services/ble/temperature_sensor/temperature_sensor_interactor.dart';
 import 'package:temperature_app/services/logger_service.dart';
-import 'package:temperature_app/ui/screens/ble/ble_device_connection_state_body.dart';
 import 'package:temperature_app/ui/screens/ble/ble_status_screen.dart';
 
 import 'ble_connect_to_device_screen.dart';
-import 'ble_provision_new_device_body.dart';
 import 'ble_scan_screen.dart';
 
 class DeviceProvisioningScreen extends StatefulWidget {
@@ -29,6 +29,7 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
   late final FlutterReactiveBle _ble;
   late final BleStatusMonitorService _bleStatusMonitor;
   late final BleConnectorService _connector;
+  late final TemperatureSensorInteractor _interactor;
 
   final initialRoute = BleScanScreen.routeName;
   final Widget initialScreen = const BleScanScreen();
@@ -39,7 +40,8 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
     _logger = LoggerService();
     _ble = FlutterReactiveBle();
     _bleStatusMonitor = BleStatusMonitorService(ble: _ble);
-    _connector = BleConnectorService(ble: _ble, logMessage: _logger.log);
+    _interactor = TemperatureSensorInteractor(ble: _ble, logMessage: _logger.log);
+    _connector = BleConnectorService(ble: _ble, logMessage: _logger.log, interactor: _interactor);
   }
 
   @override
@@ -60,7 +62,6 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
     return routes;
   }
 
-  // TODO: Check bluetooth status, if not ready go to BleStatusScreen to inform user of it
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -68,6 +69,7 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
         Provider.value(value: _logger),
         Provider.value(value: _ble),
         Provider.value(value: _connector),
+        Provider.value(value: _interactor),
         StreamProvider<BleStatus?>(
             create: (_) => _bleStatusMonitor.state,
             initialData: BleStatus.unknown),

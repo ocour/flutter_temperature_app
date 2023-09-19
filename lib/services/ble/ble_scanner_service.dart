@@ -4,26 +4,19 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:temperature_app/services/reactive_state.dart';
 
 import 'ble_scanner_state.dart';
+import 'utils/typedefs.dart';
 
 class BleScannerService implements ReactiveState<BleScannerState> {
   BleScannerService({
     required FlutterReactiveBle ble,
-    required final void Function({
-      required String name,
-      required String message,
-      Object? error,
-    }) logMessage,
+    required LogMessage logMessage,
   })  : _ble = ble,
         _logMessage = logMessage {
     _log("BleScannerService created.");
   }
 
   final FlutterReactiveBle _ble;
-  final void Function({
-    required String name,
-    required String message,
-    Object? error,
-  }) _logMessage;
+  final LogMessage _logMessage;
 
   static const _tag = "BleScannerService";
 
