@@ -6,6 +6,7 @@ import 'package:temperature_app/ui/authenticator/sign_out_screen.dart';
 
 import '../../services/auth/auth_service.dart';
 import '../../services/auth/auth_state.dart';
+import 'loading_screen.dart';
 import 'sign_in_screen.dart';
 
 /// Wraps child to prevent unauthenticated access to it
@@ -44,7 +45,10 @@ class _AuthenticatorState extends State<Authenticator> {
   Widget build(BuildContext context) {
     return Consumer<AuthState?>(
       builder: (_, state, __) {
-        if (state?.isSignedIn ?? false) {
+        if(state?.isSignedIn == null) {
+          return const LoadingScreen();
+        }
+        else if (state?.isSignedIn ?? false) {
           return widget.child;
         } else {
           return Navigator(
@@ -110,7 +114,7 @@ class _AuthenticationProviderState extends State<AuthenticationProvider> {
         Provider.value(value: auth),
         StreamProvider<AuthState?>(
           create: (_) => auth.state,
-          initialData: const AuthState(isSignedIn: false),
+          initialData: const AuthState(isSignedIn: null),
         ),
       ],
       child: widget.child,
