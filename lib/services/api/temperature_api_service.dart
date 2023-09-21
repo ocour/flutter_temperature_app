@@ -29,7 +29,6 @@ class TemperatureApiService {
       final idToken = await _getIdToken();
 
       final url = Uri.https(ENDPOINT, "$STAGE/things");
-      // print("URL: $url");
 
       final response = await http.get(url, headers: {
         "Authorization": idToken

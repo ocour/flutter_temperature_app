@@ -109,60 +109,62 @@ class _SignInScreenState extends State<SignInScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("Sign In"),
       ),
-      body: Column(
-        children: [
-          if (_isLoading) const LinearProgressIndicator(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    if (_errorMessage != null)
-                      ErrorCard(message: _errorMessage!),
-                    divider,
-                    UsernameTextFormField(
-                      enabled: !_isLoading,
-                      controller: _usernameController,
-                      labelText: "Username",
-                    ),
-                    divider,
-                    PasswordTextFormField(
-                      enabled: !_isLoading,
-                      controller: _passwordController,
-                      labelText: "Password",
-                      validator: (String? value) {
-                        if (value != null &&
-                            value.isNotEmpty &&
-                            value.length < 8) {
-                          return "Password has to be longer than 8 characters";
-                        } else if (value != null && value.isEmpty) {
-                          return "Password cannot be empty";
-                        } else {
-                          return null;
-                        }
-                      },
-                    ),
-                    divider,
-                    FilledButton(
-                      onPressed: !_isLoading
-                          ? () async {
-                              _resetErrorMessage();
-                              if (_formKey.currentState!.validate()) {
-                                await _signIn();
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            if (_isLoading) const LinearProgressIndicator(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      if (_errorMessage != null)
+                        ErrorCard(message: _errorMessage!),
+                      divider,
+                      UsernameTextFormField(
+                        enabled: !_isLoading,
+                        controller: _usernameController,
+                        labelText: "Username",
+                      ),
+                      divider,
+                      PasswordTextFormField(
+                        enabled: !_isLoading,
+                        controller: _passwordController,
+                        labelText: "Password",
+                        validator: (String? value) {
+                          if (value != null &&
+                              value.isNotEmpty &&
+                              value.length < 8) {
+                            return "Password has to be longer than 8 characters";
+                          } else if (value != null && value.isEmpty) {
+                            return "Password cannot be empty";
+                          } else {
+                            return null;
+                          }
+                        },
+                      ),
+                      divider,
+                      FilledButton(
+                        onPressed: !_isLoading
+                            ? () async {
+                                _resetErrorMessage();
+                                if (_formKey.currentState!.validate()) {
+                                  await _signIn();
+                                }
                               }
-                            }
-                          : null,
-                      child: const Text("Sign In"),
-                    ),
-                  ],
+                            : null,
+                        child: const Text("Sign In"),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

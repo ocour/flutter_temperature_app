@@ -170,6 +170,5 @@ class TemperatureSensorInteractor implements BleDeviceInteractor {
       deviceId: deviceId,
       value: 1,
     );
-    _log("Provisioning completed.");
   }
 }

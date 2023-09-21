@@ -1,6 +1,8 @@
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:temperature_app/services/api/temperature_api_service.dart';
 import 'package:temperature_app/ui/screens/ble/device_provisioning_screen.dart';
 
 import 'amplifyconfiguration.dart';
@@ -11,8 +13,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _configureAmplify();
   runApp(
-      const AuthenticationProvider(
-        child: TemperatureApp(),
+      AuthenticationProvider(
+        child: Provider(
+          create: (context) => TemperatureApiService(),
+          child: const TemperatureApp(),
+        ),
       ),
   );
 }

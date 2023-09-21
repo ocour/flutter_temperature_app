@@ -1,3 +1,4 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/services/api/temperature_api_service.dart';
@@ -14,47 +15,26 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider(create: (context) => TemperatureApiService())
-      ],
-      builder: (context, child) => Scaffold(
-        appBar: const TemperatureAppAppBar(title: "Temperature App"),
-        body: Center(
-          child: Column(
-            children: [
-              const Text("Welcome"),
-              ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pushNamed(context, DeviceProvisioningScreen.routeName);
-                  },
-                  child: const Text("Provision device"),
-              ),
-              const Text("Sign out"),
-              ElevatedButton(
-                onPressed: () async {
-                  await context.read<AuthService>().signOut();
-                },
-                child: const Text("SignOut"),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final result = await context.read<TemperatureApiService>().getAllThings();
-                  print("Result: $result");
-                },
-                child: const Text("Test"),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final result = await context.read<TemperatureApiService>().getTemperatureData(
-                      const ThingName(thingName: "thing1"),
-                  );
-                  print("Result: $result");
-                },
-                child: const Text("Test2"),
-              ),
-            ],
-          ),
+    return Scaffold(
+      appBar: const TemperatureAppAppBar(title: "Temperature App"),
+      body: Center(
+        child: Column(
+          children: [
+            const Text("Welcome"),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pushNamed(context, DeviceProvisioningScreen.routeName);
+              },
+              child: const Text("Provision device"),
+            ),
+            const Text("Sign out"),
+            ElevatedButton(
+              onPressed: () async {
+                await context.read<AuthService>().signOut();
+              },
+              child: const Text("SignOut"),
+            ),
+          ],
         ),
       ),
     );

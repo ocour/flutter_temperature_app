@@ -15,7 +15,8 @@ class BleConnectToDeviceScreen extends StatefulWidget {
   final DiscoveredDevice device;
 
   @override
-  State<BleConnectToDeviceScreen> createState() => _BleConnectToDeviceScreenState();
+  State<BleConnectToDeviceScreen> createState() =>
+      _BleConnectToDeviceScreenState();
 }
 
 class _BleConnectToDeviceScreenState extends State<BleConnectToDeviceScreen> {
@@ -45,14 +46,15 @@ class _BleConnectToDeviceScreenState extends State<BleConnectToDeviceScreen> {
   Widget build(BuildContext context) {
     return Consumer<BleConnectionState?>(
       builder: (_, state, __) {
-        if(state?.connectionState != BleDeviceConnectionState.connectedAndDoesSupportServices) {
+        if (state?.connectionState !=
+            BleDeviceConnectionState.connectedAndDoesSupportServices) {
           return BleDeviceConnectionStateBody(
-              state: state ?? const BleConnectionState(
-                deviceId: "Unknown device",
-                connectionState: BleDeviceConnectionState.none,
-                failure: null,
-              )
-          );
+              state: state ??
+                  const BleConnectionState(
+                    deviceId: "Unknown device",
+                    connectionState: BleDeviceConnectionState.none,
+                    failure: null,
+                  ));
         } else {
           return BleProvisionNewDeviceBody(deviceId: widget.device.id);
         }

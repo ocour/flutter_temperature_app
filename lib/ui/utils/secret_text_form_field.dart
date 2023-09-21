@@ -18,6 +18,7 @@ class SecretTextFormField extends StatelessWidget {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       autocorrect: false,
       enableSuggestions: false,
+      obscureText: true,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         icon: Icon(icon),

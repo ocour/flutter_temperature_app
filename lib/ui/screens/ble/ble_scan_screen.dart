@@ -50,7 +50,7 @@ class _BleScanScreenState extends State<BleScanScreen> {
         ],
       child: Scaffold(
         appBar: const TemperatureAppAppBar(
-          title: "Scan for devices",
+          title: "Scan for sensor devices",
         ),
         body: Consumer2<BleScannerService, BleScannerState?>(
           builder: (_, scanner, state, __) => BleScanBody(

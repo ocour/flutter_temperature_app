@@ -4,6 +4,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:temperature_app/services/reactive_state.dart';
 
 import 'ble_scanner_state.dart';
+import 'temperature_sensor/uuids.dart';
 import 'utils/typedefs.dart';
 
 class BleScannerService implements ReactiveState<BleScannerState> {
@@ -36,7 +37,7 @@ class BleScannerService implements ReactiveState<BleScannerState> {
     _log("Starting scanning.");
     _devices.clear();
     _scanSubscription?.cancel();
-    _scanSubscription = _ble.scanForDevices(withServices: []).listen(
+    _scanSubscription = _ble.scanForDevices(withServices: [temperatureSensorService]).listen(
       (device) {
         // Check if device has already been discovered
         // if so update its value in list, otherwise add device to list

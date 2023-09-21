@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:temperature_app/services/ble/ble_connection_state.dart';
 import 'package:temperature_app/services/ble/ble_device_connection_state.dart';
 import 'package:temperature_app/ui/utils/divider.dart';
 import 'package:temperature_app/ui/utils/temperature_app_app_bar.dart';
 
+import '../../../services/ble/temperature_sensor/temperature_sensor_interactor.dart';
+
 class BleDeviceConnectionStateBody extends StatelessWidget {
-  const BleDeviceConnectionStateBody({super.key, required this.state});
+  const BleDeviceConnectionStateBody(
+      {super.key, required this.state});
 
   final BleConnectionState state;
 

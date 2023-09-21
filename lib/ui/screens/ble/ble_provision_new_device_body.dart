@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:temperature_app/services/api/exceptions.dart';
+import 'package:temperature_app/services/api/temperature_api_service.dart';
+import 'package:temperature_app/services/api/thing_name.dart';
 import 'package:temperature_app/services/ble/exceptions/exceptions.dart';
 import 'package:temperature_app/services/ble/temperature_sensor/temperature_sensor_interactor.dart';
+import 'package:temperature_app/ui/screens/ble/ble_provisioning_data_sent_screen.dart';
 import 'package:temperature_app/ui/utils/divider.dart';
 import 'package:temperature_app/ui/utils/error_card.dart';
 import 'package:temperature_app/ui/utils/non_secret_text_form_field.dart';
@@ -34,6 +38,10 @@ class _BleProvisionNewDeviceBodyState extends State<BleProvisionNewDeviceBody> {
     _wifiSsidController = TextEditingController();
     _wifiPwdController = TextEditingController();
     _thingNameController = TextEditingController();
+    // Send random data to trigger bonding
+    context
+        .read<TemperatureSensorInteractor>()
+        .writeWifiSsid(deviceId: widget.deviceId, value: "123");
   }
 
   @override
@@ -66,38 +74,68 @@ class _BleProvisionNewDeviceBodyState extends State<BleProvisionNewDeviceBody> {
     _displayError(null);
   }
 
-  Future<void> _checkThingNameAvailability() async {
-    // TODO:
+  /// Will return true if thingName is available
+  Future<bool> _thingNameIsAvailable(String thingName) async {
+    try {
+      final things = await context.read<TemperatureApiService>().getAllThings();
+      return !things.any((thing) => thing.thingName == thingName);
+    } on ApiUnauthorizedException {
+      _displayError("You are unauthorized to make this api request.");
+    } on ApiUnknownException {
+      _displayError("An unknown api error occurred.");
+    }
+
+    // if here means an exception occurred.
+    return false;
   }
 
   Future<void> _sendProvisioningData() async {
     _startLoading();
 
-    final wifiSsid = _wifiSsidController.text;
-    final wifiPwd = _wifiPwdController.text;
-    final thingName = _thingNameController.text;
+    final wifiSsid = _wifiSsidController.text.trim();
+    final wifiPwd = _wifiPwdController.text.trim();
+    final thingName = _thingNameController.text.trim();
 
-    if(wifiSsid.isEmpty || wifiPwd.isEmpty || thingName.isEmpty) {
+    if (wifiSsid.isEmpty || wifiPwd.isEmpty || thingName.isEmpty) {
       _displayError("Fields cannot be empty");
       _stopLoading();
       return;
     }
 
-    // TODO: CHECK THAT THING-NAME IS FREE WITH API CALL
+    // Check if thingName is already in use
+    final thingNameIsAvailable = await _thingNameIsAvailable(thingName);
+    if (!thingNameIsAvailable) {
+      // Is already in use
+      // TODO: CHANGE TO FIELD ERROR
+      _displayError("Thing name is already in use, choose another one.");
+      _stopLoading();
+      return;
+    }
+
+    if (!context.mounted) {
+      _stopLoading();
+      return;
+    }
 
     final interactor = context.read<TemperatureSensorInteractor>();
 
     try {
-      await interactor.writeWifiSsid(deviceId: widget.deviceId, value: wifiSsid);
-      await interactor.writeWifiPwd(deviceId: widget.deviceId, value: wifiPwd);
-      await interactor.writeThingName(deviceId: widget.deviceId, value: thingName);
-      await interactor.informCompleteProvisioning(deviceId: widget.deviceId);
+      final deviceId = widget.deviceId;
+      await interactor.writeWifiSsid(deviceId: deviceId, value: wifiSsid);
+      await interactor.writeWifiPwd(deviceId: deviceId, value: wifiPwd);
+      await interactor.writeThingName(deviceId: deviceId, value: thingName);
+      await interactor.informCompleteProvisioning(deviceId: deviceId);
+      // TODO: Navigate away back to HomeScreen
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            BleProvisioningDataSentScreen.routeName, (route) => false);
+      }
     } on BleWriteCharacteristicException {
-      _displayError("An error occurred while trying to write to service");
+      _displayError("An error occurred while trying to write to service.");
     } on BleWriteCharacteristicArgumentException {
-      _displayError("All fields must be ascii");
+      _displayError("All fields must be ascii.");
     } on BleWriteCharacteristicUnknownException {
-      _displayError("An unknown error occurred");
+      _displayError("An unknown error occurred, try again.");
     } finally {
       _stopLoading();
     }
@@ -110,34 +148,35 @@ class _BleProvisionNewDeviceBodyState extends State<BleProvisionNewDeviceBody> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if(_isLoading) const LinearProgressIndicator(),
+            if (_isLoading) const LinearProgressIndicator(),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      if(_errorMessage != null) ErrorCard(message: _errorMessage!),
+                      if (_errorMessage != null)
+                        ErrorCard(message: _errorMessage!),
                       const MyDivider(),
                       WifiSsidTextFormField(
-                        enabled: true,
+                        enabled: !_isLoading,
                         controller: _wifiSsidController,
                         labelText: "Wi-Fi SSID",
                       ),
                       const MyDivider(),
                       WifiPasswordTextFormField(
-                        enabled: true,
+                        enabled: !_isLoading,
                         controller: _wifiPwdController,
                         labelText: "Wi-Fi password",
                       ),
                       const MyDivider(),
                       NonSecretTextFormField(
-                        enabled: true,
+                        enabled: !_isLoading,
                         controller: _thingNameController,
                         labelText: "Thing name",
                         icon: Icons.device_thermostat_rounded,
                         validator: (String? value) {
-                          if(value != null && value.isEmpty) {
+                          if (value != null && value.isEmpty) {
                             return "Thing name cannot be empty";
                           } else {
                             return null;
@@ -146,11 +185,14 @@ class _BleProvisionNewDeviceBodyState extends State<BleProvisionNewDeviceBody> {
                       ),
                       const MyDivider(),
                       ElevatedButton(
-                          onPressed: () async {
-                            _clearError();
-                            await _sendProvisioningData();
-                          },
-                          child: const Text("Provision new device"),
+                        // If loading disable button
+                        onPressed: !_isLoading
+                            ? () async {
+                                _clearError();
+                                await _sendProvisioningData();
+                              }
+                            : null,
+                        child: const Text("Provision new device"),
                       ),
                     ],
                   )),

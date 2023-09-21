@@ -8,6 +8,7 @@ import 'package:temperature_app/services/ble/ble_device_interactor.dart';
 import 'package:temperature_app/services/ble/ble_status_monitor_service.dart';
 import 'package:temperature_app/services/ble/temperature_sensor/temperature_sensor_interactor.dart';
 import 'package:temperature_app/services/logger_service.dart';
+import 'package:temperature_app/ui/screens/ble/ble_provisioning_data_sent_screen.dart';
 import 'package:temperature_app/ui/screens/ble/ble_status_screen.dart';
 
 import 'ble_connect_to_device_screen.dart';
@@ -40,8 +41,10 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
     _logger = LoggerService();
     _ble = FlutterReactiveBle();
     _bleStatusMonitor = BleStatusMonitorService(ble: _ble);
-    _interactor = TemperatureSensorInteractor(ble: _ble, logMessage: _logger.log);
-    _connector = BleConnectorService(ble: _ble, logMessage: _logger.log, interactor: _interactor);
+    _interactor =
+        TemperatureSensorInteractor(ble: _ble, logMessage: _logger.log);
+    _connector = BleConnectorService(
+        ble: _ble, logMessage: _logger.log, interactor: _interactor);
   }
 
   @override
@@ -107,6 +110,10 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
                     case BleConnectToDeviceScreen.routeName:
                       final device = settings.arguments as DiscoveredDevice;
                       builder = (_) => BleConnectToDeviceScreen(device: device);
+                      break;
+                    case BleProvisioningDataSentScreen.routeName:
+                      builder =
+                          (context) => const BleProvisioningDataSentScreen();
                       break;
                     default:
                       throw Exception('Invalid route: ${settings.name}');
