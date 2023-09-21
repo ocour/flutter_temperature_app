@@ -17,9 +17,6 @@ class CognitoAuthProvider extends AuthProvider {
   @override
   Future<void> initialize() async {
     await _authEventSubscription?.cancel();
-
-    await Future.delayed(const Duration(seconds: 2));
-
     // Get initial SignedIn state
     await _pushState();
     // TODO: REMOVE PRINT
