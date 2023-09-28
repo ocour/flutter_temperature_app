@@ -31,9 +31,7 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
   late final BleStatusMonitorService _bleStatusMonitor;
   late final BleConnectorService _connector;
   late final TemperatureSensorInteractor _interactor;
-
   final initialRoute = BleScanScreen.routeName;
-  final Widget initialScreen = const BleScanScreen();
 
   @override
   void initState() {
@@ -61,7 +59,8 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
     String initialRouteName,
   ) {
     List<MaterialPageRoute> routes = [];
-    routes.add(MaterialPageRoute(builder: (context) => initialScreen));
+    routes.add(MaterialPageRoute(
+        builder: (_) => BleScanScreen(onPop: Navigator.of(context).pop)));
     return routes;
   }
 
@@ -77,16 +76,17 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
             create: (_) => _bleStatusMonitor.state,
             initialData: BleStatus.unknown),
         StreamProvider<BleConnectionState?>(
-            create: (_) => _connector.state,
-            initialData: const BleConnectionState(
-              deviceId: "Unknown device",
-              connectionState: BleDeviceConnectionState.none,
-              failure: null,
-            )),
+          create: (_) => _connector.state,
+          initialData: const BleConnectionState(
+            deviceId: "Unknown device",
+            connectionState: BleDeviceConnectionState.none,
+            failure: null,
+          ),
+        ),
       ],
       child: WillPopScope(
         onWillPop: () async {
-          if (_navigatorKey.currentState!.canPop()) {
+          if (_navigatorKey.currentState?.canPop() ?? false) {
             _navigatorKey.currentState!.pop();
             return false;
           }
@@ -105,15 +105,21 @@ class _DeviceProvisioningScreenState extends State<DeviceProvisioningScreen> {
                   WidgetBuilder builder;
                   switch (settings.name) {
                     case BleScanScreen.routeName:
-                      builder = (_) => const BleScanScreen();
+                      builder = (_) => BleScanScreen(
+                            // Pass this here to get access to the [context] outside
+                            // of this [Navigator]. This is required to pop out of
+                            // this nested [Navigator]
+                            onPop: Navigator.of(context).pop,
+                          );
                       break;
                     case BleConnectToDeviceScreen.routeName:
                       final device = settings.arguments as DiscoveredDevice;
                       builder = (_) => BleConnectToDeviceScreen(device: device);
                       break;
                     case BleProvisioningDataSentScreen.routeName:
-                      builder =
-                          (context) => const BleProvisioningDataSentScreen();
+                      builder = (_) => BleProvisioningDataSentScreen(
+                            onDone: Navigator.of(context).pop,
+                          );
                       break;
                     default:
                       throw Exception('Invalid route: ${settings.name}');

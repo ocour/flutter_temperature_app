@@ -48,4 +48,9 @@ class AuthService extends AuthProvider {
   Future<void> dispose() {
     return provider.dispose();
   }
+
+  @override
+  Future<String> fetchIdToken() {
+    return provider.fetchIdToken();
+  }
 }

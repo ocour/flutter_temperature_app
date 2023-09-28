@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/services/auth/auth_service.dart';
 
+import 'authenticator_app_bar.dart';
+
 class SignOutScreen extends StatelessWidget {
   const SignOutScreen({super.key});
 
@@ -10,10 +12,7 @@ class SignOutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Sign Out"),
-      ),
+      appBar: const AuthenticatorAppBar(title: "Sign Out"),
       body: Center(
         child: Column(
           children: [

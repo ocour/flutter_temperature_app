@@ -5,14 +5,18 @@ import 'package:temperature_app/services/ble/ble_connector_service.dart';
 import 'package:temperature_app/services/ble/ble_scanner_service.dart';
 import 'package:temperature_app/services/ble/ble_scanner_state.dart';
 import 'package:temperature_app/services/logger_service.dart';
+import 'package:temperature_app/ui/screens/ble/ble_app_bar.dart';
+import 'package:temperature_app/ui/screens/ble/ble_provisioning_data_sent_screen.dart';
 import 'package:temperature_app/ui/utils/temperature_app_app_bar.dart';
 
 import 'ble_connect_to_device_screen.dart';
 
 class BleScanScreen extends StatefulWidget {
-  const BleScanScreen({super.key});
+  const BleScanScreen({super.key, required this.onPop});
 
   static const String routeName = "/device-provision/scan";
+
+  final VoidCallback onPop;
 
   @override
   State<BleScanScreen> createState() => _BleScanScreenState();
@@ -49,8 +53,9 @@ class _BleScanScreenState extends State<BleScanScreen> {
           ),
         ],
       child: Scaffold(
-        appBar: const TemperatureAppAppBar(
+        appBar: BleAppBar(
           title: "Scan for sensor devices",
+          onPop: widget.onPop,
         ),
         body: Consumer2<BleScannerService, BleScannerState?>(
           builder: (_, scanner, state, __) => BleScanBody(

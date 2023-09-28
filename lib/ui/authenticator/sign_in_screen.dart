@@ -11,6 +11,7 @@ import '../../services/auth/auth_next_step.dart';
 import '../../services/auth/auth_service.dart';
 import '../utils/error_card.dart';
 import '../utils/divider.dart' as util;
+import 'authenticator_app_bar.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -105,10 +106,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Sign In"),
-      ),
+      appBar: const AuthenticatorAppBar(title: "Sign in"),
       body: SingleChildScrollView(
         child: Column(
           children: [

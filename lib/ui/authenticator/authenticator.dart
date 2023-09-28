@@ -45,10 +45,11 @@ class _AuthenticatorState extends State<Authenticator> {
   Widget build(BuildContext context) {
     return Consumer<AuthState?>(
       builder: (_, state, __) {
-        if(state?.isSignedIn == null) {
+        final authState = state?.isSignedIn;
+        if(authState == null) {
           return const LoadingScreen();
         }
-        else if (state?.isSignedIn ?? false) {
+        else if (authState) {
           return widget.child;
         } else {
           return Navigator(

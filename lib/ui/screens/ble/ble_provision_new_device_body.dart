@@ -5,6 +5,7 @@ import 'package:temperature_app/services/api/temperature_api_service.dart';
 import 'package:temperature_app/services/api/thing_name.dart';
 import 'package:temperature_app/services/ble/exceptions/exceptions.dart';
 import 'package:temperature_app/services/ble/temperature_sensor/temperature_sensor_interactor.dart';
+import 'package:temperature_app/ui/screens/ble/ble_app_bar.dart';
 import 'package:temperature_app/ui/screens/ble/ble_provisioning_data_sent_screen.dart';
 import 'package:temperature_app/ui/utils/divider.dart';
 import 'package:temperature_app/ui/utils/error_card.dart';
@@ -41,7 +42,8 @@ class _BleProvisionNewDeviceBodyState extends State<BleProvisionNewDeviceBody> {
     // Send random data to trigger bonding
     context
         .read<TemperatureSensorInteractor>()
-        .writeWifiSsid(deviceId: widget.deviceId, value: "123");
+        .writeWifiSsid(deviceId: widget.deviceId, value: "123")
+        .onError((error, stackTrace) => null);
   }
 
   @override
@@ -144,7 +146,9 @@ class _BleProvisionNewDeviceBodyState extends State<BleProvisionNewDeviceBody> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TemperatureAppAppBar(title: "Provision device"),
+      appBar: const BleAppBar(
+        title: "Provision device",
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [

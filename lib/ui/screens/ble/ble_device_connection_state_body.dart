@@ -6,6 +6,7 @@ import 'package:temperature_app/ui/utils/divider.dart';
 import 'package:temperature_app/ui/utils/temperature_app_app_bar.dart';
 
 import '../../../services/ble/temperature_sensor/temperature_sensor_interactor.dart';
+import 'ble_app_bar.dart';
 
 class BleDeviceConnectionStateBody extends StatelessWidget {
   const BleDeviceConnectionStateBody(
@@ -78,7 +79,9 @@ class BleDeviceConnectionStateBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TemperatureAppAppBar(title: "Connection status"),
+      appBar: const BleAppBar(
+          title: "Connection status",
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(

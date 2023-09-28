@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:temperature_app/ui/utils/temperature_app_app_bar.dart';
+
+import 'authenticator_app_bar.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key});
@@ -7,7 +8,7 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      appBar: TemperatureAppAppBar(
+      appBar: AuthenticatorAppBar(
         title: "Loading",
       ),
       body: Center(

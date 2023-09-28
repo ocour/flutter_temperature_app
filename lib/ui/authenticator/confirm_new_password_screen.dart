@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/services/auth/auth_exceptions.dart';
 import 'package:temperature_app/services/auth/auth_service.dart';
+import 'package:temperature_app/ui/authenticator/authenticator_app_bar.dart';
 
 import '../../services/auth/auth_next_step.dart';
 import '../utils/error_card.dart';
@@ -98,10 +99,7 @@ class _ConfirmNewPasswordScreenState extends State<ConfirmNewPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("New Password"),
-      ),
+      appBar: const AuthenticatorAppBar(title: "New Password"),
       body: Column(
         children: [
           if (_isLoading) const LinearProgressIndicator(),

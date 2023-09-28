@@ -3,11 +3,15 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/services/api/temperature_api_service.dart';
+import 'package:temperature_app/services/auth/auth_service.dart';
 import 'package:temperature_app/ui/screens/ble/device_provisioning_screen.dart';
 
 import 'amplifyconfiguration.dart';
+import 'services/api/thing_name.dart';
 import 'ui/authenticator/authenticator.dart';
+import 'ui/screens/ble/ble_provisioning_data_sent_screen.dart';
 import 'ui/screens/home_screen.dart';
+import 'ui/screens/thing_temperature_data_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +19,9 @@ Future<void> main() async {
   runApp(
       AuthenticationProvider(
         child: Provider(
-          create: (context) => TemperatureApiService(),
+          create: (context) => TemperatureApiService(
+            authService: context.read<AuthService>(),
+          ),
           child: const TemperatureApp(),
         ),
       ),
@@ -41,6 +47,7 @@ class TemperatureApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Temperature App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -53,6 +60,11 @@ class TemperatureApp extends StatelessWidget {
         switch(settings.name) {
           case DeviceProvisioningScreen.routeName:
             builder = (context) => const DeviceProvisioningScreen();
+          case ThingTemperatureDataScreen.routeName:
+            final thing = settings.arguments as ThingName;
+            builder = (context) => ThingTemperatureDataScreen(
+              thing: thing,
+            );
           default:
             throw Exception('Invalid route: ${settings.name}');
         }

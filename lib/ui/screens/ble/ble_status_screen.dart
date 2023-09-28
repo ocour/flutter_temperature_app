@@ -3,6 +3,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/services/logger_service.dart';
+import 'package:temperature_app/ui/screens/ble/ble_app_bar.dart';
 import 'package:temperature_app/ui/utils/divider.dart';
 
 import '../../utils/temperature_app_app_bar.dart';
@@ -32,7 +33,7 @@ class BleStatusScreen extends StatelessWidget {
   }
 
   Widget _determineWidget(BuildContext context) {
-    switch(status) {
+    switch (status) {
       case BleStatus.unsupported:
         return const BleInformationWidget(
           icon: Icons.error_outline_rounded,
@@ -76,7 +77,9 @@ class BleStatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TemperatureAppAppBar(title: "Ble Status"),
+      appBar: const BleAppBar(
+        title: "Ble Status",
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -144,5 +147,3 @@ class BleUnauthorizedWidget extends StatelessWidget {
     );
   }
 }
-
-

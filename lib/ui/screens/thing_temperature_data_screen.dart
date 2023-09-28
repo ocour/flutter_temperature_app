@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:temperature_app/services/api/temperature_api_service.dart';
+import 'package:temperature_app/services/api/temperature_data.dart';
+import 'package:temperature_app/ui/utils/temperature_app_app_bar.dart';
 
 import '../../services/api/exceptions.dart';
 import '../../services/api/thing_name.dart';
-import '../utils/temperature_app_app_bar.dart';
-import '../utils/temperature_device_card.dart';
-import 'ble/device_provisioning_screen.dart';
-import 'thing_temperature_data_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.title});
+class ThingTemperatureDataScreen extends StatefulWidget {
+  const ThingTemperatureDataScreen({super.key, required this.thing});
 
-  final String title;
+  static const String routeName = "temperature-data";
+  final ThingName thing;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ThingTemperatureDataScreen> createState() =>
+      _ThingTemperatureDataScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final _things = <ThingName>[];
+class _ThingTemperatureDataScreenState
+    extends State<ThingTemperatureDataScreen> {
+  final _temperatureData = <TemperatureData>[];
   bool _isLoading = false;
 
   void startLoading() {
@@ -34,13 +35,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _getThings() async {
+  Future<void> _getTemperatureData() async {
     try {
       startLoading();
-      final result = await context.read<TemperatureApiService>().getAllThings();
+      final thing = widget.thing;
+      final result =
+          await context.read<TemperatureApiService>().getTemperatureData(thing);
       setState(() {
-        _things.clear();
-        _things.addAll(result);
+        _temperatureData.clear();
+        _temperatureData.addAll(result);
       });
     } on ApiUnauthorizedException {
       displayErrorSnackBar("Error: unauthorized");
@@ -85,39 +88,40 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _getThings();
+      _getTemperatureData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TemperatureAppAppBar(title: "Temperature App"),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: () {
-          Navigator.of(context).pushNamed(DeviceProvisioningScreen.routeName);
-        },
-        tooltip: "Provision new device",
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-        child: const Icon(Icons.add),
+      appBar: TemperatureAppAppBar(
+        title: widget.thing.thingName,
+        showMenu: false,
       ),
       body: Column(
         children: [
-          _isLoading
-              ? const LinearProgressIndicator()
-              : const SizedBox.shrink(),
+          if (_isLoading) const LinearProgressIndicator(),
           Expanded(
             child: RefreshIndicator(
               backgroundColor: Theme.of(context).colorScheme.onPrimary,
               color: Theme.of(context).colorScheme.primary,
               onRefresh: () async {
-                await _getThings();
+                _getTemperatureData();
               },
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: _things.isNotEmpty
-                    ? ThingListView(things: _things)
+                child: _temperatureData.isNotEmpty
+                    ? ListView.separated(
+                        physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics()),
+                        itemCount: _temperatureData.length,
+                        itemBuilder: (context, index) => TemperatureTile(
+                          data: _temperatureData[index],
+                        ),
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 16, thickness: 0),
+                      )
                     : ListView(
                         physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics()),
@@ -125,9 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Center(
                             child: _isLoading
                                 ? null
-                                : const Text(
-                                    "Register a new sensor by clicking the plus(+) button"),
-                          ),
+                                : const Text("No temperature data"),
+                          )
                         ],
                       ),
               ),
@@ -139,29 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class ThingListView extends StatelessWidget {
-  const ThingListView({super.key, required this.things});
+class TemperatureTile extends StatelessWidget {
+  const TemperatureTile({super.key, required this.data});
 
-  final List<ThingName> things;
+  final TemperatureData data;
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      physics:
-          const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      itemCount: things.length,
-      itemBuilder: (_, index) {
-        return TemperatureDeviceCard(
-          name: things[index].thingName,
-          onTap: () {
-            Navigator.of(context).pushNamed(
-                ThingTemperatureDataScreen.routeName,
-                arguments: things[index]);
-          },
-        );
-      },
-      separatorBuilder: (BuildContext context, int index) =>
-          const Divider(height: 16, thickness: 0),
+    return ListTile(
+      leading: const Icon(Icons.thermostat_rounded),
+      title: Text("${data.temperature}\u2103"),
+      subtitle: Text("${data.timeStamp.toLocal()}"),
     );
   }
 }

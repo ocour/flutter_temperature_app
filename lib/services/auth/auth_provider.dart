@@ -20,5 +20,7 @@ abstract class AuthProvider extends ReactiveState<AuthState> {
 
   Future<AuthNextStep> confirmNewPassword(String newPassword);
 
+  Future<String> fetchIdToken();
+
   Future<void> dispose();
 }

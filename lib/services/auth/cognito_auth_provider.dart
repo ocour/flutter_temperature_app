@@ -1,10 +1,14 @@
 import 'dart:async';
 
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart'
-    as cognito
-    show NotAuthorizedServiceException, UserNotFoundException, AuthException, CognitoFailedSignOut, SignedOutException;
-import 'package:amplify_flutter/amplify_flutter.dart'
-    as amplify
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito
+    show
+        NotAuthorizedServiceException,
+        UserNotFoundException,
+        AuthException,
+        CognitoFailedSignOut,
+        SignedOutException,
+        AmplifyAuthCognito;
+import 'package:amplify_flutter/amplify_flutter.dart' as amplify
     show Amplify, AuthHubEvent, AuthHubEventType, HubChannel, safePrint;
 
 import 'package:temperature_app/services/auth/auth_exceptions.dart';
@@ -24,8 +28,8 @@ class CognitoAuthProvider extends AuthProvider {
     print("SignedIn: ${await _isSignedIn}");
 
     // Subscribe to SingIn and SingOut events
-    _authEventSubscription =
-        amplify.Amplify.Hub.listen(amplify.HubChannel.Auth, (amplify.AuthHubEvent event) async {
+    _authEventSubscription = amplify.Amplify.Hub.listen(amplify.HubChannel.Auth,
+        (amplify.AuthHubEvent event) async {
       switch (event.type) {
         case amplify.AuthHubEventType.signedIn:
           amplify.safePrint('User is signed in.');
@@ -120,5 +124,18 @@ class CognitoAuthProvider extends AuthProvider {
   Future<void> dispose() async {
     await _authEventSubscription?.cancel();
     await _stateController.close();
+  }
+
+  /// Fetch [idToken] that will be used for authorization when supplied inside
+  /// header of http request
+  @override
+  Future<String> fetchIdToken() async {
+    final cognitoPlugin =
+        amplify.Amplify.Auth.getPlugin(cognito.AmplifyAuthCognito.pluginKey);
+    final authSession = await cognitoPlugin.fetchAuthSession();
+
+    // This idToken will be used by the api for authorization
+    final idToken = authSession.userPoolTokensResult.value.idToken.toJson();
+    return idToken;
   }
 }
